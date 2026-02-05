@@ -33,20 +33,30 @@ public class YoutubeService {
                 .toUriString();
 
         try {
-            //api call
+            // 1. Make the API call
             String response = restTemplate.getForObject(url, String.class);
 
             ObjectMapper mapper = new ObjectMapper();
             JsonNode root = mapper.readTree(response);
-            JsonNode results = root.get("item");
 
-            for (JsonNode result : results) {
-                Video video = new Video();
-                video.setTitle(result.get("title").asText());
-                video.setVideoId(result.get("id").asText());
-                videoList.add(video);
+            // 2. YouTube uses "items" (plural)
+            JsonNode items = root.get("items");
+
+            // Check for null to prevent the iterator() crash
+            if (items != null && items.isArray()) {
+                for (JsonNode item : items) {
+                    Video video = new Video();
+
+                    // 3. Title is inside "snippet"
+                    video.setTitle(item.path("snippet").path("title").asText());
+
+                    // 4. videoId is inside "id"
+                    video.setVideoId(item.path("id").path("videoId").asText());
+
+                    videoList.add(video);
+                }
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return videoList;

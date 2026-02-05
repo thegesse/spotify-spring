@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/videos")
+@RequestMapping("/api")
 public class SearchController {
     private final YoutubeService youtubeService;
 
@@ -19,7 +19,7 @@ public class SearchController {
     }
 
     @GetMapping("/search")
-    public List<Video> searchVideos(@RequestParam String query) {
+    public List<Video> searchVideos(@RequestParam("q") String query) {
         return youtubeService.searchVideos(query);
     }
 }
