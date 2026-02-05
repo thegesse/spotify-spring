@@ -2,15 +2,13 @@ package com.geese.spotify.controller;
 
 import com.geese.spotify.model.Video;
 import com.geese.spotify.service.YoutubeService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api")
+@CrossOrigin("*")
 public class SearchController {
     private final YoutubeService youtubeService;
 
@@ -21,5 +19,10 @@ public class SearchController {
     @GetMapping("/search")
     public List<Video> searchVideos(@RequestParam("q") String query) {
         return youtubeService.searchVideos(query);
+    }
+
+    @GetMapping("/video-details")
+    public List<Video> videoDetails(@RequestParam("ids") String ids) {
+        return youtubeService.getVideosDetails(ids);
     }
 }

@@ -24,13 +24,12 @@ async function handleSearch() {
 
         videos.forEach(video => {
             const videoElement = `
-                <div class="video-card">
-                    <h3>${video.title}</h3>
-                    <p>ID: ${video.videoId}</p>
-                    <button onclick="playVideo('${video.videoId}')">Play</button>
-                </div>
-            `;
-            // Fixed variable name to match 'resultContainer'
+        <div class="video-card">
+            <h3>${video.title}</h3>
+            <button onclick="playVideo('${video.videoId}')">Play</button>
+            <button onclick="saveVideo('${video.videoId}')">Save to Library</button>
+        </div>
+    `;
             resultContainer.insertAdjacentHTML('beforeend', videoElement);
         });
     } catch (e) {
@@ -55,4 +54,39 @@ function playVideo(id) {
             </iframe>
         </div>
     `;
+}
+
+// move these when future me wants to add a playlist system
+function saveVideo(videoId) {
+    const favorites = JSON.parse(localStorage.getItem('myVideos')) || [];
+
+    if (!favorites.includes(videoId)) {
+        favorites.push(videoId);
+        localStorage.setItem('myVideos', JSON.stringify(favorites));
+        console.log("ID Saved:", videoId);
+    }
+}
+
+async function loadFavorites() {
+    const favoriteIds = JSON.parse(localStorage.getItem('myVideos')) || [];
+    console.log("IDs found in storage:", favoriteIds); // DEBUG 1
+    if (favoriteIds.length === 0) return;
+    const idString = favoriteIds.join(',');
+    const url = `/api/video-details?ids=${encodeURIComponent(idString)}`;
+    console.log("Fetching from:", url); // DEBUG 2
+
+    try {
+        const response = await fetch(`/api/video-details?ids=${idString}`);
+        const freshVideos = await response.json();
+        console.log("Data received from Java:", freshVideos); // DEBUG 3
+        const favoriteContainer = document.getElementById('favorites-list');
+        favoriteContainer.innerHTML = freshVideos.map(video => `
+            <li>
+                <strong>${video.title}</strong>
+                <button onclick="playVideo('${video.videoId}')">Play Now</button>
+            </li>
+        `).join('');
+    } catch (e) {
+        console.error("Couldn't refresh titles:", e);
+    }
 }

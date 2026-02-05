@@ -18,6 +18,7 @@ public class YoutubeService {
     private String apiKey;
     private static final long numberOfSearches = 2;
     private final String YOUTUBE_URL = "https://www.googleapis.com/youtube/v3/search";
+    private final String VIDEOS_DETAILS_URL = "https://www.googleapis.com/youtube/v3/videos";
 
     public List<Video> searchVideos(String query){
         RestTemplate restTemplate = new RestTemplate();
@@ -33,26 +34,49 @@ public class YoutubeService {
                 .toUriString();
 
         try {
-            // 1. Make the API call
             String response = restTemplate.getForObject(url, String.class);
-
             ObjectMapper mapper = new ObjectMapper();
             JsonNode root = mapper.readTree(response);
 
-            // 2. YouTube uses "items" (plural)
             JsonNode items = root.get("items");
 
-            // Check for null to prevent the iterator() crash
             if (items != null && items.isArray()) {
                 for (JsonNode item : items) {
                     Video video = new Video();
 
-                    // 3. Title is inside "snippet"
                     video.setTitle(item.path("snippet").path("title").asText());
-
-                    // 4. videoId is inside "id"
                     video.setVideoId(item.path("id").path("videoId").asText());
+                    videoList.add(video);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return videoList;
+    }
 
+    public List<Video> getVideosDetails(String ids) {
+        RestTemplate restTemplate = new RestTemplate();
+        List<Video> videoList = new ArrayList<>();
+
+        String url = UriComponentsBuilder.fromUriString(VIDEOS_DETAILS_URL)
+                .queryParam("part", "snippet")
+                .queryParam("id", ids)
+                .queryParam("key", apiKey)
+                .build()
+                .toUriString();
+
+        try {
+            String response = restTemplate.getForObject(url, String.class);
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode root = mapper.readTree(response);
+            JsonNode items = root.get("items");
+
+            if (items != null && items.isArray()) {
+                for (JsonNode item : items) {
+                    Video video = new Video();
+                    video.setTitle(item.path("snippet").path("title").asText());
+                    video.setVideoId(item.path("id").asText());
                     videoList.add(video);
                 }
             }
