@@ -1,16 +1,9 @@
-document.getElementById('add').addEventListener('submit', function(event) {
-    event.preventDefault();
-    handleSearch();
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-    loadFavorites();
-});
+import { renderPlaylist, fetchAllPlaylists } from './save.js';
 
 export async function handleSearch() {
     const query = document.getElementById('userSearch').value;
-
     let resultContainer = document.getElementById('video-results');
+
     if (!resultContainer) {
         resultContainer = document.createElement('div');
         resultContainer.id = 'video-results';
@@ -20,24 +13,26 @@ export async function handleSearch() {
     try {
         const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
         const videos = await response.json();
+        const playlistNames = await fetchAllPlaylists();
 
         resultContainer.innerHTML = '';
-
         videos.forEach(video => {
+            const videoJson = JSON.stringify(video).replace(/"/g, '&quot;');
+
             const videoElement = `
-        <div class="video-card">
-            <h3>${video.title}</h3>
-            <button onclick="playVideo('${video.videoId}')">Play</button>
-            <button onclick="saveVideo('${video.videoId}')">Save to Library</button>
-        </div>
-    `;
+                <div class="video-card">
+                    <h3>${video.title}</h3>
+                    <select id="folder-${video.videoId}">
+                        ${playlistNames.map(name => `<option value="${name}">${name}</option>`).join('')}
+                    </select>
+                    <button onclick="playVideo('${video.videoId}')">Play</button>
+                    <button onclick="saveToPlaylist('${video.videoId}', ${videoJson})">Add to Playlist</button>
+                </div>
+            `;
             resultContainer.insertAdjacentHTML('beforeend', videoElement);
         });
     } catch (e) {
-        console.error("Error fetching videos:", e);
+        console.error("Error during search:", e);
         resultContainer.innerHTML = "Something went wrong.";
     }
-    document.addEventListener('DOMContentLoaded', () => {
-        loadFavorites();
-    });
 }
