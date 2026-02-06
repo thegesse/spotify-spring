@@ -1,4 +1,10 @@
 let currentPlaylistName = "My Library";
+function syncToLocalStorage(name, videos) {
+    const allSavedData = JSON.parse(localStorage.getItem('youtube_playlists') || '{}');
+    allSavedData[name] = videos;
+    localStorage.setItem('youtube_playlists', JSON.stringify(allSavedData));
+}
+
 export function renderPlaylistUI(names) {
     const container = document.getElementById('playlist-buttons-container');
     if (!container) return;
@@ -53,9 +59,9 @@ export async function renderPlaylist(name = currentPlaylistName) {
     try {
         const response = await fetch(`/api/playlist/${encodeURIComponent(name)}`);
         const videos = await response.json();
+        syncToLocalStorage(name, videos);
 
         window.currentPlaylist = videos.map(v => v.videoId);
-
         const container = document.getElementById('favorites-list');
         if (!container) return;
 
