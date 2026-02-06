@@ -3,6 +3,10 @@ document.getElementById('add').addEventListener('submit', function(event) {
     handleSearch();
 });
 
+document.addEventListener('DOMContentLoaded', () => {
+    loadFavorites();
+});
+
 async function handleSearch() {
     const query = document.getElementById('userSearch').value;
 
@@ -36,6 +40,33 @@ async function handleSearch() {
     document.addEventListener('DOMContentLoaded', () => {
         loadFavorites();
     });
+}
+
+function playVideo(videoId) {
+    const playerContainer = document.getElementById('player-container');
+    if (!playerContainer) return;
+
+    playerContainer.innerHTML = `
+        <iframe width="560" height="315" 
+            src="https://www.youtube.com/embed/${videoId}?autoplay=1" 
+            frameborder="0" allowfullscreen>
+        </iframe>`;
+}
+
+function saveVideo(videoId) {
+    let favorites = JSON.parse(localStorage.getItem('myVideos')) || [];
+    if (!favorites.includes(videoId)) {
+        favorites.push(videoId);
+        localStorage.setItem('myVideos', JSON.stringify(favorites));
+        loadFavorites();
+    }
+}
+
+function removeVideo(videoId) {
+    let favorites = JSON.parse(localStorage.getItem('myVideos')) || [];
+    favorites = favorites.filter(id => id !== videoId);
+    localStorage.setItem('myVideos', JSON.stringify(favorites));
+    loadFavorites();
 }
 
 let currentPlaylist = [];
